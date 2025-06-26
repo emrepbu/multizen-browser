@@ -1,6 +1,6 @@
 <template>
     <div class="sidebar-container">
-        <session-tabs>
+        <div class="new-session-container">
             <session-tab
                 title="New session"
                 class="new-session"
@@ -8,7 +8,9 @@
             >
                 <i class="fa fa-plus" />
             </session-tab>
+        </div>
 
+        <session-tabs>
             <session-tab
                 v-for="(s, k) in sessions"
                 :key="s.id"
@@ -65,5 +67,11 @@ export default {
     display: flex;
     flex-direction: column;
     user-select: none;
+}
+
+.new-session-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 </style>

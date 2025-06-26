@@ -34,6 +34,7 @@ export default {
     align-items: center;
     min-height: 20px;
     padding-bottom: 10px;
+    padding-top: 10px;
     font-size: 10px;
     text-align: center;
     color: #6b6b6b;
