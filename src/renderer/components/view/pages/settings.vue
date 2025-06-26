@@ -158,7 +158,10 @@ export default {
         },
 
         closeSession() {
-            this.removeSession({ sessionIndex: this.currentSessionIndex });
+            const confirmed = confirm('Are you sure you want to close this session?');
+            if (confirmed) {
+                this.removeSession({ sessionIndex: this.currentSessionIndex });
+            }
         },
 
         urlify(url) {
