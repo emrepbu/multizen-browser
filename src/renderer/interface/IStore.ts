@@ -20,4 +20,5 @@ export interface ISession {
 export interface IState {
     currentSessionIndex: number;
     sessions: ISession[];
+    defaultHomePage: string;
 }

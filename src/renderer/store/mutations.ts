@@ -5,6 +5,10 @@ import { v4 as uuid } from "uuid";
 import { defaultHomePage, defaultUserAgent } from "@renderer/data/main";
 
 const mutations: MutationTree<IState> = {
+    setDefaultHomePage: (s, homePage: string) => {
+        s.defaultHomePage = homePage;
+    },
+
     addSession: async (s) => {
         const sessionId = uuid();
         s.sessions.push({
@@ -19,7 +23,7 @@ const mutations: MutationTree<IState> = {
             id: sessionId,
             currentTabIndex: 0,
             settings: {
-                homePage: defaultHomePage,
+                homePage: s.defaultHomePage,
                 userAgent: defaultUserAgent,
             },
         });
