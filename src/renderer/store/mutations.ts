@@ -2,7 +2,7 @@ import { IState } from "@renderer/interface/IStore";
 import { MutationTree } from "vuex";
 import set from "lodash/set";
 import { v4 as uuid } from "uuid";
-import { defaultHomePage, defaultUserAgent } from "@renderer/data/main";
+import { defaultUserAgent } from "@renderer/data/main";
 
 const mutations: MutationTree<IState> = {
     setDefaultHomePage: (s, homePage: string) => {

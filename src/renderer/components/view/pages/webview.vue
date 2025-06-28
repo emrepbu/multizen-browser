@@ -17,25 +17,23 @@
 
             <button
                 class="controls-button"
-                @click="loading ? view.stop() : view.reload()"
+                @click="loading ? stopLoading() : reloadWithDebounce()"
             >
                 <i :class="!loading ? 'fa fa-refresh' : 'fa fa-times'" />
             </button>
 
-            <url :value="currentTab.url" @navigate="navigate($event)" />
+            <url :value="tab.url" @navigate="navigate($event)" />
         </div>
 
         <div class="view-container-content">
             <webview
-                v-show="currentTab"
                 ref="view"
-                :key="currentTab.session"
                 autosize
                 class="webview"
-                :src="currentTab.url"
-                :partition="`persist:${currentTab.session}`"
-                :useragent="currentSession.settings.userAgent"
-                @dom-ready="loaded"
+                :src="tab.url"
+                :partition="`persist:${tab.session}`"
+:useragent="sessions[sessionIndex].settings.userAgent"
+                @dom-ready="initView"
             />
         </div>
     </div>
@@ -54,39 +52,42 @@ const events = {
     "did-stop-loading": "didStopLoading",
     "did-navigate": "didNavigate",
     "did-fail-load": "didFailLoad",
+    "before-input-event": "beforeInputEvent",
 };
 
 export default {
     components: {
         Url,
     },
+    props: {
+        tab: {
+            type: Object,
+            required: true,
+        },
+        tabIndex: {
+            type: Number,
+            required: true,
+        },
+        sessionIndex: {
+            type: Number,
+            required: true,
+        },
+    },
     data() {
         return {
             view: null as WebviewTag | null,
             loading: false,
+            lastReloadTime: 0,
+            reloadDebounceMs: 500, // 500ms debounce
         };
     },
 
-    computed: {
+computed: {
         ...mapGetters("sessions", [
-            "currentSession",
-            "currentTab",
-            "currentSessionIndex",
+            "sessions",
         ]),
     },
 
-    watch: {
-        url: {
-            handler(url) {
-                this.updateTab({
-                    sessionIndex: this.currentSessionIndex,
-                    tabIndex: this.currentSession.currentTabIndex,
-                    k: "url",
-                    v: url,
-                });
-            },
-        },
-    },
 
     mounted() {
         this.$nextTick(() => this.initView());
@@ -105,27 +106,55 @@ export default {
             }
         },
 
+        reloadWithDebounce() {
+            const now = Date.now();
+            if (now - this.lastReloadTime < this.reloadDebounceMs) {
+                console.log("Reload debounced - too soon");
+                return;
+            }
+            this.lastReloadTime = now;
+            this.view?.reload();
+        },
+
+        stopLoading() {
+            this.view?.stop();
+        },
+
+        beforeInputEvent(event) {
+            const { type, key, modifiers } = event;
+            
+            // Prevent refresh shortcuts (F5, Ctrl+R, Cmd+R)
+            if (type === 'keyDown') {
+                if (key === 'F5' || 
+                    ((modifiers.includes('cmd') || modifiers.includes('ctrl')) && key === 'r')) {
+                    console.log("Prevented refresh shortcut:", key, modifiers);
+                    event.preventDefault();
+                    this.reloadWithDebounce();
+                    return;
+                }
+            }
+        },
+
         didFinishLoad() {
             this.view?.removeEventListener(
                 "did-finish-load",
                 this.didFinishLoad,
             );
-            this.navigate(this.currentTab.url);
         },
 
         didNavigate(e) {
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "url",
                 v: e.url,
             });
         },
 
         pageFaviconUpdated(r) {
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "favicon",
                 v: get(r, "favicons.0", null),
             });
@@ -135,19 +164,13 @@ export default {
             this.loading = true;
         },
 
-        loaded() {
-            this.view = this.$refs.view as WebviewTag;
-            Object.keys(events).forEach((event) =>
-                this.view?.addEventListener(event, this[events[event]]),
-            );
-        },
 
         didStopLoading() {
             this.loading = false;
 
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "title",
                 v: this.view?.getTitle(),
             });
