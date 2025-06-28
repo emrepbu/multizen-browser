@@ -22,19 +22,17 @@
                 <i :class="!loading ? 'fa fa-refresh' : 'fa fa-times'" />
             </button>
 
-            <url :value="currentTab.url" @navigate="navigate($event)" />
+            <url :value="tab.url" @navigate="navigate($event)" />
         </div>
 
         <div class="view-container-content">
             <webview
-                v-show="currentTab"
                 ref="view"
-                :key="currentTab.session"
                 autosize
                 class="webview"
-                :src="currentTab.url"
-                :partition="`persist:${currentTab.session}`"
-                :useragent="currentSession.settings.userAgent"
+                :src="tab.url"
+                :partition="`persist:${tab.session}`"
+:useragent="sessions[sessionIndex].settings.userAgent"
                 @dom-ready="loaded"
             />
         </div>
@@ -60,6 +58,20 @@ export default {
     components: {
         Url,
     },
+    props: {
+        tab: {
+            type: Object,
+            required: true,
+        },
+        tabIndex: {
+            type: Number,
+            required: true,
+        },
+        sessionIndex: {
+            type: Number,
+            required: true,
+        },
+    },
     data() {
         return {
             view: null as WebviewTag | null,
@@ -67,26 +79,12 @@ export default {
         };
     },
 
-    computed: {
+computed: {
         ...mapGetters("sessions", [
-            "currentSession",
-            "currentTab",
-            "currentSessionIndex",
+            "sessions",
         ]),
     },
 
-    watch: {
-        url: {
-            handler(url) {
-                this.updateTab({
-                    sessionIndex: this.currentSessionIndex,
-                    tabIndex: this.currentSession.currentTabIndex,
-                    k: "url",
-                    v: url,
-                });
-            },
-        },
-    },
 
     mounted() {
         this.$nextTick(() => this.initView());
@@ -110,22 +108,22 @@ export default {
                 "did-finish-load",
                 this.didFinishLoad,
             );
-            this.navigate(this.currentTab.url);
+            this.navigate(this.tab.url);
         },
 
         didNavigate(e) {
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "url",
                 v: e.url,
             });
         },
 
         pageFaviconUpdated(r) {
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "favicon",
                 v: get(r, "favicons.0", null),
             });
@@ -145,9 +143,9 @@ export default {
         didStopLoading() {
             this.loading = false;
 
-            this.updateTab({
-                sessionIndex: this.currentSessionIndex,
-                tabIndex: this.currentSession.currentTabIndex,
+this.updateTab({
+                sessionIndex: this.sessionIndex,
+                tabIndex: this.tabIndex,
                 k: "title",
                 v: this.view?.getTitle(),
             });

@@ -1,10 +1,16 @@
 <template>
     <div class="app-views">
         <div v-if="currentTab" class="app-views-container">
-            <web-view-container
-                v-if="currentTab.type !== 'settings'"
-                :key="currentSession.currentTabIndex"
-            />
+            <template v-for="(session, sessionIndex) in sessions" :key="session.id">
+                <web-view-container
+                    v-for="(tab, tabIndex) in session.tabs"
+                    v-show="currentSessionIndex === sessionIndex && session.currentTabIndex === tabIndex && tab.type !== 'settings'"
+                    :key="`${session.id}-${tab.id}`"
+                    :tab="tab"
+                    :tab-index="tabIndex"
+                    :session-index="sessionIndex"
+                />
+            </template>
 
             <settings-view
                 v-if="currentTab.type === 'settings'"
@@ -30,6 +36,7 @@ export default {
             "currentSession",
             "currentSessionIndex",
             "currentTab",
+            "sessions",
         ]),
     },
 };
