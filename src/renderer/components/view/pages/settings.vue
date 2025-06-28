@@ -14,14 +14,22 @@
                 <div class="settings-block">
                     <h4>Home page</h4>
                     <div class="input-block">
-                        <input
-                            v-model="homePage"
-                            class="d-block"
-                            type="url"
-                            required
-                            @blur="saveHomePage"
-                            @change="saveHomePage"
-                        />
+                        <div class="d-flex">
+                            <input
+                                v-model="homePage"
+                                class="d-block"
+                                type="url"
+                                required
+                                @blur="saveHomePage"
+                                @change="saveHomePage"
+                            />
+                            <button
+                                class="set-ua-btn"
+                                @click="saveAsDefaultHomePage"
+                            >
+                                <i class="fa fa-save" /> Save
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <hr />
@@ -104,7 +112,7 @@
 </template>
 
 <script lang="ts">
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapActions } from "vuex";
 import userAgents from "@renderer/user-agents/useragents.json";
 
 const defaultUserAgent = window.navigator.userAgent;
@@ -129,6 +137,7 @@ export default {
 
     methods: {
         ...mapMutations("sessions", ["updateSessionSetting", "removeSession"]),
+        ...mapActions("sessions", ["saveDefaultHomePage"]),
 
         saveHomePage() {
             this.homePage = this.urlify(this.homePage.trim());
@@ -137,6 +146,12 @@ export default {
                 k: "homePage",
                 v: this.homePage,
             });
+        },
+
+        saveAsDefaultHomePage() {
+            this.saveHomePage();
+            this.saveDefaultHomePage(this.homePage);
+            alert("Default home page saved!");
         },
 
         setDefaultUserAgent() {

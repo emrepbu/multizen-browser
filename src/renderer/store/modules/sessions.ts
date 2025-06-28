@@ -1,5 +1,6 @@
 import mutations from "@renderer/store/mutations";
 import getters from "@renderer/store/getters";
+import actions from "@renderer/store/actions";
 import { defaultHomePage, defaultUserAgent } from "@renderer/data/main";
 import { v4 as uuid } from "uuid";
 
@@ -28,8 +29,10 @@ export default {
                 currentTabIndex: 0,
             },
         ],
+        defaultHomePage: defaultHomePage,
     },
 
     mutations,
     getters,
+    actions,
 };
