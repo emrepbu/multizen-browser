@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, Tray, shell, app } from "electron";
+import { BrowserWindow, Menu, Tray, shell, app, nativeImage } from "electron";
 import env from "./env";
 import { getPath, logsPath } from "./util";
 
@@ -16,7 +16,9 @@ export default class TrayMenuBuilder {
     }
 
     buildMenu() {
-        this.tray = new Tray(getPath("resources/icons/icon.png"));
+        const image = nativeImage.createFromPath(getPath("resources/icons/icon.png"));
+        const resizedImage = image.resize({ width: 16, height: 16 });
+        this.tray = new Tray(resizedImage);
 
         const contextMenu = this.buildTray();
 
