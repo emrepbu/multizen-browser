@@ -24,10 +24,6 @@ export default class TrayMenuBuilder {
 
         this.tray.setToolTip(env.main.appName);
         this.tray.setContextMenu(contextMenu);
-
-        this.tray.on("click", () => {
-            this.mainWindow.show();
-        });
     }
 
     buildTray(): Menu {
